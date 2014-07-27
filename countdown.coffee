@@ -88,7 +88,7 @@ do ->
 
             if balls[_index].y >= WINDOW_HEIGHT - RADIUS
               balls[_index].y = WINDOW_HEIGHT - RADIUS
-              balls[_index].vy = - balls[_index].vy * 0.75
+              balls[_index].vy = - balls[_index].vy * 0.85
 
           for _item, _index in balls
             if balls[_index].x + RADIUS > 0 && balls[_index].x - RADIUS < WINDOW_WIDTH

@@ -77,7 +77,7 @@
           balls[_index].vy += balls[_index].g * 0.85;
           if (balls[_index].y >= WINDOW_HEIGHT - RADIUS) {
             balls[_index].y = WINDOW_HEIGHT - RADIUS;
-            balls[_index].vy = -balls[_index].vy * 0.75;
+            balls[_index].vy = -balls[_index].vy * 0.85;
           }
         }
         for (_index = _j = 0, _len1 = balls.length; _j < _len1; _index = ++_j) {
