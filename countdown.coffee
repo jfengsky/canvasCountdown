@@ -5,16 +5,16 @@ do ->
       CountDown = ->
         self = this
         # 画布宽度
-        WINDOW_WIDTH = 1024
+        WINDOW_WIDTH = doc.body.clientWidth
 
         # 画布高度
-        WINDOW_HEIGHT = 768
+        WINDOW_HEIGHT = doc.body.clientHeight
 
         # 画布顶部距离
         MARGIN_TOP = 60
 
         # 画布左边距
-        MARGIN_LEFT = 30
+        MARGIN_LEFT = Math.round(WINDOW_WIDTH/10)
 
         canvas = doc.getElementById('canvas')
 
@@ -26,16 +26,21 @@ do ->
         context = canvas.getContext('2d')
 
         # 圆的大小
-        RADIUS = 8
+        RADIUS = Math.round(WINDOW_WIDTH * 4 / 5 / 108) - 1
 
-        ball =
-          x: 512
-          y: 100
-          r: 20
-          g: 2
-          vx: -4
-          vy: 0
-          color: '#005588'
+        balls = []
+        colors = [
+          '#3be'
+          '#09c'
+          '#a6c'
+          '#93c'
+          '#9c0'
+          '#690'
+          '#fb3'
+          '#f80'
+          '#f44'
+          '#c0c'
+        ]
 
         endTime = new Date(2014,6,28,20,18,22)
         curShowTimeSeconds = 0
@@ -52,7 +57,51 @@ do ->
           ret
 
         ###
-         *
+         * 把改变的小球添加到数组中
+         * @param {Number} x    每个点的x坐标
+         * @param {Number} y    每个点得y坐标
+         * @param {String} num  要渲染的字
+        ###
+        @addBalls = (x, y, num)->
+          for _index_i, _item_i in digit[num]
+            for _index_j, _item_j in digit[num][_item_i]
+              if digit[num][_item_i][_item_j] == 1
+                aBall =
+                  x: x + _item_j * 2 * (RADIUS + 1) + (RADIUS + 1)
+                  y: y + _item_i * 2 * (RADIUS + 1) + (RADIUS + 1)
+                  g: 1.5 + Math.random()
+                  vx: Math.pow(-1, Math.ceil( Math.random() * 1000 )) * 4
+                  vy: -5 - Math.pow(-1, Math.ceil( Math.random() * 1000 )) * 1
+                  color: colors[ Math.floor( Math.random() * colors.length) ]
+                balls.push aBall
+          return
+
+        ###
+         * 更新运动的小球
+        ###
+        @updataBalls = ->
+          cnt = 0
+          for _item, _index in balls
+            balls[_index].x += balls[_index].vx
+            balls[_index].y += balls[_index].vy
+            balls[_index].vy += balls[_index].g * 0.85
+
+            if balls[_index].y >= WINDOW_HEIGHT - RADIUS
+              balls[_index].y = WINDOW_HEIGHT - RADIUS
+              balls[_index].vy = - balls[_index].vy * 0.75
+
+          for _item, _index in balls
+            if balls[_index].x + RADIUS > 0 && balls[_index].x - RADIUS < WINDOW_WIDTH
+              balls[cnt++] = balls[_index]
+
+          while balls.length > Math.min(300, cnt)
+            balls.pop()
+
+          console.log balls.length
+          return
+
+        ###
+         * 更新时间和小球
         ###
         @update = ->
           nextShowTimeSeconds = self.getCurrentShowTimeSeconds()
@@ -64,9 +113,34 @@ do ->
           curHours = parseInt( curShowTimeSeconds / 3600 )
           curMinutes = parseInt( (curShowTimeSeconds - nextHours * 3600) / 60)
           curSeconds = curShowTimeSeconds % 60
-          
+
           if nextSeconds != curSeconds
+            # 判断小时是否有改变
+            if parseInt(curHours/10) != parseInt(nextHours/10)
+              self.addBalls(MARGIN_LEFT + 0, MARGIN_TOP, parseInt(curHours/10))
+
+            if parseInt(curHours%10) != parseInt(nextHours%10)
+              self.addBalls(MARGIN_LEFT + 15*(RADIUS + 1), MARGIN_TOP, parseInt(curHours%10))
+
+            # 判断分钟是否有改变
+            if parseInt(curMinutes/10) != parseInt(nextMinutes/10)
+              self.addBalls(MARGIN_LEFT + 39*(RADIUS + 1), MARGIN_TOP, parseInt(curMinutes/10))
+
+            if parseInt(curMinutes%10) != parseInt(nextMinutes%10)
+              self.addBalls(MARGIN_LEFT + 54*(RADIUS + 1), MARGIN_TOP, parseInt(curMinutes%10))
+
+            # 判断秒是否有改变
+            if parseInt(curSeconds/10) != parseInt(nextSeconds/10)
+              self.addBalls(MARGIN_LEFT + 78*(RADIUS + 1), MARGIN_TOP, parseInt(curSeconds/10))
+
+            if parseInt(curSeconds%10) != parseInt(nextSeconds%10)
+              self.addBalls(MARGIN_LEFT + 93*(RADIUS + 1), MARGIN_TOP, parseInt(curSeconds%10))
+
             curShowTimeSeconds = nextShowTimeSeconds
+
+          self.updataBalls()
+
+
           return
 
 
@@ -80,7 +154,7 @@ do ->
          * @return
         ###
         @renderDigit = (x, y, num, ctx) ->
-          ctx.fillStyle = '#00f'
+          ctx.fillStyle = '#06f'
           for _index_i, _item_i in digit[num]
             for _index_j, _item_j in digit[num][_item_i]
               if digit[num][_item_i][_item_j] == 1
@@ -125,6 +199,15 @@ do ->
 
           # 渲染第八个字
           self.renderDigit( MARGIN_LEFT + 93*(RADIUS+1) , MARGIN_TOP , parseInt(seconds%10) , ctx)
+
+          # 绘制小球
+          for _item, _index in balls
+            ctx.fillStyle = balls[_index].color
+            ctx.beginPath()
+            ctx.arc(balls[_index].x, balls[_index].y, RADIUS, 0, 2 * Math.PI, true)
+            ctx.closePath()
+            ctx.fill()
+
           return
 
         ###

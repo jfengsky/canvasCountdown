@@ -5,26 +5,19 @@
   return doc.addEventListener('DOMContentLoaded', function() {
     var CountDown;
     CountDown = function() {
-      var MARGIN_LEFT, MARGIN_TOP, RADIUS, WINDOW_HEIGHT, WINDOW_WIDTH, ball, canvas, context, curShowTimeSeconds, endTime, self;
+      var MARGIN_LEFT, MARGIN_TOP, RADIUS, WINDOW_HEIGHT, WINDOW_WIDTH, balls, canvas, colors, context, curShowTimeSeconds, endTime, self;
       self = this;
-      WINDOW_WIDTH = 1024;
-      WINDOW_HEIGHT = 768;
+      WINDOW_WIDTH = doc.body.clientWidth;
+      WINDOW_HEIGHT = doc.body.clientHeight;
       MARGIN_TOP = 60;
-      MARGIN_LEFT = 30;
+      MARGIN_LEFT = Math.round(WINDOW_WIDTH / 10);
       canvas = doc.getElementById('canvas');
       canvas.width = WINDOW_WIDTH;
       canvas.height = WINDOW_HEIGHT;
       context = canvas.getContext('2d');
-      RADIUS = 8;
-      ball = {
-        x: 512,
-        y: 100,
-        r: 20,
-        g: 2,
-        vx: -4,
-        vy: 0,
-        color: '#005588'
-      };
+      RADIUS = Math.round(WINDOW_WIDTH * 4 / 5 / 108) - 1;
+      balls = [];
+      colors = ['#3be', '#09c', '#a6c', '#93c', '#9c0', '#690', '#fb3', '#f80', '#f44', '#c0c'];
       endTime = new Date(2014, 6, 28, 20, 18, 22);
       curShowTimeSeconds = 0;
       /*
@@ -42,7 +35,64 @@
         return ret;
       };
       /*
-       *
+       * 把改变的小球添加到数组中
+       * @param {Number} x    每个点的x坐标
+       * @param {Number} y    每个点得y坐标
+       * @param {String} num  要渲染的字
+      */
+
+      this.addBalls = function(x, y, num) {
+        var aBall, _i, _index_i, _index_j, _item_i, _item_j, _j, _len, _len1, _ref, _ref1;
+        _ref = digit[num];
+        for (_item_i = _i = 0, _len = _ref.length; _i < _len; _item_i = ++_i) {
+          _index_i = _ref[_item_i];
+          _ref1 = digit[num][_item_i];
+          for (_item_j = _j = 0, _len1 = _ref1.length; _j < _len1; _item_j = ++_j) {
+            _index_j = _ref1[_item_j];
+            if (digit[num][_item_i][_item_j] === 1) {
+              aBall = {
+                x: x + _item_j * 2 * (RADIUS + 1) + (RADIUS + 1),
+                y: y + _item_i * 2 * (RADIUS + 1) + (RADIUS + 1),
+                g: 1.5 + Math.random(),
+                vx: Math.pow(-1, Math.ceil(Math.random() * 1000)) * 4,
+                vy: -5 - Math.pow(-1, Math.ceil(Math.random() * 1000)) * 1,
+                color: colors[Math.floor(Math.random() * colors.length)]
+              };
+              balls.push(aBall);
+            }
+          }
+        }
+      };
+      /*
+       * 更新运动的小球
+      */
+
+      this.updataBalls = function() {
+        var cnt, _i, _index, _item, _j, _len, _len1;
+        cnt = 0;
+        for (_index = _i = 0, _len = balls.length; _i < _len; _index = ++_i) {
+          _item = balls[_index];
+          balls[_index].x += balls[_index].vx;
+          balls[_index].y += balls[_index].vy;
+          balls[_index].vy += balls[_index].g * 0.85;
+          if (balls[_index].y >= WINDOW_HEIGHT - RADIUS) {
+            balls[_index].y = WINDOW_HEIGHT - RADIUS;
+            balls[_index].vy = -balls[_index].vy * 0.75;
+          }
+        }
+        for (_index = _j = 0, _len1 = balls.length; _j < _len1; _index = ++_j) {
+          _item = balls[_index];
+          if (balls[_index].x + RADIUS > 0 && balls[_index].x - RADIUS < WINDOW_WIDTH) {
+            balls[cnt++] = balls[_index];
+          }
+        }
+        while (balls.length > Math.min(300, cnt)) {
+          balls.pop();
+        }
+        console.log(balls.length);
+      };
+      /*
+       * 更新时间和小球
       */
 
       this.update = function() {
@@ -55,8 +105,27 @@
         curMinutes = parseInt((curShowTimeSeconds - nextHours * 3600) / 60);
         curSeconds = curShowTimeSeconds % 60;
         if (nextSeconds !== curSeconds) {
+          if (parseInt(curHours / 10) !== parseInt(nextHours / 10)) {
+            self.addBalls(MARGIN_LEFT + 0, MARGIN_TOP, parseInt(curHours / 10));
+          }
+          if (parseInt(curHours % 10) !== parseInt(nextHours % 10)) {
+            self.addBalls(MARGIN_LEFT + 15 * (RADIUS + 1), MARGIN_TOP, parseInt(curHours % 10));
+          }
+          if (parseInt(curMinutes / 10) !== parseInt(nextMinutes / 10)) {
+            self.addBalls(MARGIN_LEFT + 39 * (RADIUS + 1), MARGIN_TOP, parseInt(curMinutes / 10));
+          }
+          if (parseInt(curMinutes % 10) !== parseInt(nextMinutes % 10)) {
+            self.addBalls(MARGIN_LEFT + 54 * (RADIUS + 1), MARGIN_TOP, parseInt(curMinutes % 10));
+          }
+          if (parseInt(curSeconds / 10) !== parseInt(nextSeconds / 10)) {
+            self.addBalls(MARGIN_LEFT + 78 * (RADIUS + 1), MARGIN_TOP, parseInt(curSeconds / 10));
+          }
+          if (parseInt(curSeconds % 10) !== parseInt(nextSeconds % 10)) {
+            self.addBalls(MARGIN_LEFT + 93 * (RADIUS + 1), MARGIN_TOP, parseInt(curSeconds % 10));
+          }
           curShowTimeSeconds = nextShowTimeSeconds;
         }
+        self.updataBalls();
       };
       /*
        * 渲染每个字
@@ -69,7 +138,7 @@
 
       this.renderDigit = function(x, y, num, ctx) {
         var _i, _index_i, _index_j, _item_i, _item_j, _j, _len, _len1, _ref, _ref1;
-        ctx.fillStyle = '#00f';
+        ctx.fillStyle = '#06f';
         _ref = digit[num];
         for (_item_i = _i = 0, _len = _ref.length; _i < _len; _item_i = ++_i) {
           _index_i = _ref[_item_i];
@@ -92,7 +161,7 @@
       */
 
       this.render = function(ctx) {
-        var hours, minutes, seconds;
+        var hours, minutes, seconds, _i, _index, _item, _len;
         hours = parseInt(curShowTimeSeconds / 3600);
         minutes = parseInt((curShowTimeSeconds - hours * 3600) / 60);
         seconds = curShowTimeSeconds % 60;
@@ -105,6 +174,14 @@
         self.renderDigit(MARGIN_LEFT + 69 * (RADIUS + 1), MARGIN_TOP, 10, ctx);
         self.renderDigit(MARGIN_LEFT + 78 * (RADIUS + 1), MARGIN_TOP, parseInt(seconds / 10), ctx);
         self.renderDigit(MARGIN_LEFT + 93 * (RADIUS + 1), MARGIN_TOP, parseInt(seconds % 10), ctx);
+        for (_index = _i = 0, _len = balls.length; _i < _len; _index = ++_i) {
+          _item = balls[_index];
+          ctx.fillStyle = balls[_index].color;
+          ctx.beginPath();
+          ctx.arc(balls[_index].x, balls[_index].y, RADIUS, 0, 2 * Math.PI, true);
+          ctx.closePath();
+          ctx.fill();
+        }
       };
       /*
        * 初始化
